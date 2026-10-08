@@ -1,239 +1,257 @@
 # World Bank Economic Data Pipeline
 
-**End-to-End Data Engineering Project | Qlik Talend Cloud · REST API · Google BigQuery · SQL · Looker Studio**
+**Projet Data Engineering de bout en bout | Qlik Talend Cloud · API REST · Google BigQuery · SQL · Looker Studio**
 
-![Project Status](https://img.shields.io/badge/Status-Planning-blue)
-![Data Engineering](https://img.shields.io/badge/Domain-Data%20Engineering-0A66C2)
-![Data Source](https://img.shields.io/badge/Data%20Source-World%20Bank%20API-00897B)
-![Platform](https://img.shields.io/badge/ETL-Qlik%20Talend%20Cloud-orange)
+![Statut](https://img.shields.io/badge/Statut-En%20préparation-blue)
+![Data Engineering](https://img.shields.io/badge/Domaine-Data%20Engineering-0A66C2)
+![ETL](https://img.shields.io/badge/ETL-Qlik%20Talend%20Cloud-orange)
+![Source](https://img.shields.io/badge/Source-World%20Bank%20API-00897B)
 
-## 1. Project Overview
+## 1. Présentation du projet
 
-This project aims to design and implement an **end-to-end cloud-based ETL pipeline** to collect, transform, validate, store, and analyze economic indicators from the World Bank Open Data API.
+Ce projet a pour objectif de concevoir et de développer un **pipeline ETL (Extract, Transform, Load) de bout en bout**, entièrement basé sur des services Cloud.
 
-The solution is designed around Qlik Talend Cloud for data integration, Google BigQuery for analytical storage, SQL for data processing, and Looker Studio for business intelligence.
+Il consiste à extraire des indicateurs économiques depuis l'API REST de la Banque mondiale (World Bank), à les transformer avec Qlik Talend Cloud, puis à les charger dans Google BigQuery afin de réaliser des analyses SQL et des visualisations avec Looker Studio.
 
-The project demonstrates practical Data Engineering skills, including:
+Le projet vise à démontrer plusieurs compétences essentielles en Data Engineering :
 
-- REST API data ingestion
-- JSON parsing and schema normalization
-- ETL pipeline development
-- Data cleaning and transformation
-- Data quality validation
-- Cloud Data Warehouse integration
-- SQL-based analytical modeling
-- Data visualization and reporting
-- Technical documentation and reproducibility
+- Consommation et intégration d'API REST
+- Extraction et traitement de données JSON
+- Développement de pipelines ETL
+- Nettoyage et transformation de données
+- Contrôles de qualité des données (Data Quality)
+- Chargement dans un Data Warehouse Cloud
+- Analyse de données avec SQL
+- Création de tableaux de bord décisionnels
+- Documentation technique et versionnement avec GitHub
 
-**Current status:** Project planning. Implementation, testing, and validation are pending.
+**Statut actuel :** phase de préparation et de conception. Le développement et les tests restent à réaliser.
 
-## 2. Business Problem
+## 2. Contexte et problématique métier
 
-Economic indicators are often distributed across multiple datasets and may contain missing values, inconsistent structures, and different measurement units.
+Les données économiques internationales sont disponibles à travers différentes sources, indicateurs et périodes.
 
-This makes cross-country economic analysis difficult without a standardized data integration process.
+Leur exploitation nécessite des traitements pour harmoniser les formats, gérer les valeurs manquantes et faciliter les comparaisons entre pays.
 
-The project addresses the following business question:
+**Problématique :**
 
-**How have GDP, inflation, unemployment, and population evolved across six major economies between 2015 and 2024?**
+Comment le PIB, l'inflation, le chômage et la population ont-ils évolué dans six grandes économies mondiales entre 2015 et 2024 ?
 
-The objective is to consolidate these indicators into a structured analytical dataset that supports reliable comparisons and visual exploration.
+Le projet permettra de construire un jeu de données analytique centralisé afin de comparer les performances économiques des pays sélectionnés.
 
-## 3. Project Scope
+## 3. Périmètre du projet
 
-### Countries
+### Pays étudiés
 
-| Country | ISO Code |
+| Pays | Code ISO |
 |---|---|
 | France | FRA |
-| Germany | DEU |
-| United States | USA |
-| China | CHN |
-| Japan | JPN |
-| India | IND |
+| Allemagne | DEU |
+| États-Unis | USA |
+| Chine | CHN |
+| Japon | JPN |
+| Inde | IND |
 
-### Economic Indicators
+### Indicateurs économiques
 
-| Indicator | World Bank Code | Unit |
+| Indicateur | Code API World Bank | Unité |
 |---|---|---|
-| Gross Domestic Product | `NY.GDP.MKTP.CD` | Current US dollars |
-| Inflation | `FP.CPI.TOTL.ZG` | Annual % |
-| Unemployment | `SL.UEM.TOTL.ZS` | % of total labor force |
-| Total Population | `SP.POP.TOTL` | People |
+| Produit intérieur brut (PIB) | `NY.GDP.MKTP.CD` | Dollars US courants |
+| Inflation annuelle | `FP.CPI.TOTL.ZG` | Pourcentage annuel |
+| Taux de chômage | `SL.UEM.TOTL.ZS` | Pourcentage de la population active |
+| Population totale | `SP.POP.TOTL` | Nombre d'habitants |
 
-**Analysis period:** 2015–2024 (10 years)
+**Période d'analyse :** 2015 à 2024.
 
-**Expected source coverage:** 6 countries × 4 indicators × 10 years = 240 potential country-indicator-year observations.
+**Volume théorique :** 6 pays × 4 indicateurs × 10 années = 240 observations potentielles.
 
-This number represents the expected source combinations, not 240 guaranteed non-null values. The analytical table will contain up to 60 country-year combinations.
+Le volume réellement exploitable dépendra de la disponibilité des données et des valeurs manquantes dans l'API.
 
-## 4. Technology Stack
+## 4. Technologies utilisées
 
-| Technology | Role |
+| Technologie | Rôle dans le projet |
 |---|---|
-| World Bank REST API | Source data extraction |
-| Qlik Talend Cloud | Pipeline design and orchestration |
-| Talend HTTP Client | REST API ingestion |
-| Talend transformations | Parsing, cleaning, and transformation |
-| Google BigQuery | Cloud Data Warehouse |
-| SQL | Analytical queries and data validation |
-| Google Looker Studio | Data visualization |
-| GitHub | Version control and documentation |
+| World Bank REST API | Source des données économiques |
+| Qlik Talend Cloud | Développement et exécution des pipelines ETL |
+| Talend HTTP Client | Extraction des données via HTTPS |
+| Talend Pipeline Designer | Transformation et traitement des données |
+| Google BigQuery | Stockage analytique dans le Cloud |
+| SQL | Analyse et contrôles de qualité |
+| Looker Studio | Visualisation et tableaux de bord |
+| GitHub | Documentation et versionnement |
 
-The target architecture is fully cloud-based, without requiring a locally installed SQL Server or Talend Studio.
+L'objectif est de travailler **100 % en ligne**, sans installation de Talend Studio ni de SQL Server local.
 
-**Implementation dependency:** The required connectors, cloud execution engine, and Google BigQuery access must be validated in the available trial environments.
+La disponibilité des connecteurs et des fonctionnalités nécessaires devra être validée dans les environnements d'essai.
 
-## 5. Target Data Architecture
+## 5. Architecture du projet
 
-The proposed data flow is:
+Le flux de données prévu est le suivant :
 
-**World Bank REST API → Talend Cloud → Data Quality & Transformation → BigQuery → Looker Studio**
+```text
++---------------------------+
+|    WORLD BANK REST API    |
+|     Données JSON / HTTP   |
++-------------+-------------+
+              |
+              v
++---------------------------+
+|      QLIK TALEND CLOUD    |
+|                           |
+|  - Extraction API         |
+|  - Parsing JSON           |
+|  - Nettoyage              |
+|  - Transformation         |
+|  - Contrôles qualité      |
++-------------+-------------+
+              |
+              v
++---------------------------+
+|       GOOGLE BIGQUERY     |
+|                           |
+|  BRONZE : Données brutes  |
+|  SILVER : Données propres |
+|  GOLD   : Données métier  |
++-------------+-------------+
+              |
+              v
++---------------------------+
+|       LOOKER STUDIO       |
+|                           |
+|  - Tableaux de bord       |
+|  - Indicateurs KPI        |
+|  - Analyses économiques   |
++---------------------------+
+```
 
-The solution follows a three-layer data architecture.
+### Architecture Medallion
 
-### Bronze Layer — Raw Data
+Le projet adoptera une architecture en trois couches.
 
-Purpose: Preserve data extracted from the World Bank API.
+**Bronze — Données brutes**
 
-Planned information:
+Cette couche contiendra les données issues de l'API World Bank, ainsi que les informations nécessaires à leur traçabilité : source, date d'extraction et identifiant de chargement.
 
-- Raw API response
-- Source API endpoint
-- Country and indicator identifiers
-- Extraction timestamp
-- Ingestion batch identifier
+**Silver — Données nettoyées**
 
-### Silver Layer — Cleaned Data
+Cette couche contiendra les données transformées, normalisées, typées et contrôlées.
 
-Purpose: Standardize, validate, and normalize source records.
+Les principaux traitements comprendront la gestion des valeurs manquantes, la conversion des types, la standardisation des codes pays et la suppression des doublons.
 
-Planned operations:
+**Gold — Données analytiques**
 
-- Parse nested JSON responses
-- Extract relevant data fields
-- Standardize ISO country codes
-- Convert years and numeric values
-- Identify and manage null values
-- Detect duplicates
-- Apply validation rules
+Cette couche regroupera les indicateurs économiques par pays et par année pour faciliter les analyses SQL et les visualisations.
 
-### Gold Layer — Analytics-Ready Data
+La structure physique définitive sera déterminée après validation des connexions Talend Cloud et BigQuery.
 
-Purpose: Build a consolidated dataset for business intelligence.
+## 6. Extraction des données — World Bank API
 
-Planned operations:
+L'extraction sera réalisée à partir de l'API officielle de la Banque mondiale.
 
-- Join indicators using country and year
-- Consolidate economic indicators
-- Calculate derived metrics
-- Produce analytical tables
-- Enable country comparisons and trend analysis
-
-The physical implementation of these layers will be finalized after validating the Talend Cloud and BigQuery connections.
-
-## 6. Data Source — World Bank API
-
-The project uses the official **World Bank Indicators API V2**.
-
-API documentation:
+**Documentation officielle :**
 
 https://datahelpdesk.worldbank.org/knowledgebase/articles/889392
 
-### Example API Request
+### Exemple de requête API
 
-GDP data for France, Germany, the United States, China, Japan, and India:
+Extraction des données PIB des six pays entre 2015 et 2024 :
 
-`https://api.worldbank.org/v2/country/FRA;DEU;USA;CHN;JPN;IND/indicator/NY.GDP.MKTP.CD?format=json&date=2015:2024&per_page=1000`
+```text
+https://api.worldbank.org/v2/country/FRA;DEU;USA;CHN;JPN;IND/indicator/NY.GDP.MKTP.CD?format=json&date=2015:2024&per_page=1000
+```
 
-The API returns JSON containing pagination metadata and economic observations.
+L'API retourne une réponse JSON contenant des métadonnées de pagination et des observations économiques.
 
-### Planned Ingestion Workflow
+### Étapes d'ingestion prévues
 
-1. Send HTTP GET requests to the World Bank API.
-2. Validate HTTP response status and JSON structure.
-3. Inspect pagination metadata.
-4. Extract indicator observations from the JSON response.
-5. Preserve relevant source metadata.
-6. Transform records into a structured tabular dataset.
-7. Validate and load records into the target Data Warehouse.
+1. Envoyer une requête HTTP GET à l'API World Bank.
+2. Vérifier le statut HTTP et la structure de la réponse JSON.
+3. Lire les métadonnées de pagination.
+4. Extraire les informations utiles.
+5. Conserver les métadonnées de traçabilité.
+6. Normaliser les données dans un format tabulaire.
+7. Transmettre les données aux étapes de transformation.
 
-The initial version will process a fixed historical period. Incremental ingestion and scheduling may be considered as future enhancements.
+## 7. Transformations ETL
 
-## 7. Data Transformation
+Les traitements prévus dans Talend Cloud comprennent :
 
-The ETL pipeline will standardize data from multiple indicators into a common analytical structure.
+- Extraction des champs JSON imbriqués
+- Conversion des années en valeurs numériques
+- Conversion des indicateurs en types numériques
+- Harmonisation des codes pays
+- Traitement des valeurs nulles
+- Détection et suppression des doublons
+- Jointure des indicateurs sur le pays et l'année
+- Calcul d'indicateurs dérivés
+- Préparation des données pour BigQuery
 
-### Target Gold Table: `fact_economic_indicators`
+### Structure cible de la table Gold
 
-| Column | Proposed Type | Description |
+**Table : `fact_economic_indicators`**
+
+| Colonne | Type BigQuery | Description |
 |---|---|---|
-| country_code | STRING | ISO alpha-3 country code |
-| country_name | STRING | Country name |
-| year | INT64 | Reference year |
-| gdp_usd | FLOAT64 | GDP in current USD |
-| inflation_pct | FLOAT64 | Annual inflation rate |
-| unemployment_pct | FLOAT64 | Unemployment rate |
-| population | INT64 | Total population |
-| gdp_per_capita | FLOAT64 | GDP per capita |
-| load_timestamp | TIMESTAMP | Data loading timestamp |
+| country_code | STRING | Code ISO du pays |
+| country_name | STRING | Nom du pays |
+| year | INT64 | Année de référence |
+| gdp_usd | FLOAT64 | PIB en dollars US courants |
+| inflation_pct | FLOAT64 | Taux d'inflation annuel |
+| unemployment_pct | FLOAT64 | Taux de chômage |
+| population | INT64 | Population totale |
+| gdp_per_capita | FLOAT64 | PIB par habitant |
+| load_timestamp | TIMESTAMP | Date de chargement |
 
-For this portfolio-scale project, a country-year analytical table will be used. A dimensional model can be introduced as a future enhancement.
+### Indicateur calculé : PIB par habitant
 
-### Derived Metric
+Le PIB par habitant sera calculé selon la formule suivante :
 
-**GDP per capita**
+`PIB par habitant = PIB en USD / Population totale`
 
-`GDP per Capita = GDP (USD) / Total Population`
+Si la population est nulle, égale à zéro ou indisponible, le résultat restera NULL afin d'éviter un calcul incorrect.
 
-The calculation will return NULL when the required data is missing or the population is zero.
+## 8. Contrôles qualité des données
 
-All economic measurements will preserve their original definitions and units.
+La qualité des données est un élément essentiel du projet.
 
-## 8. Data Quality Strategy
+Les règles suivantes seront implémentées et documentées :
 
-Data quality is an essential part of the project.
-
-The pipeline will include the following validation rules:
-
-| Quality Check | Validation Rule |
+| Contrôle | Règle |
 |---|---|
-| Country completeness | Country code must not be null |
-| Year completeness | Reference year must not be null |
-| Year validity | Year must be between 2015 and 2024 |
-| Country validity | Country code must belong to the six selected countries |
-| Uniqueness — source | One record per country, year, and indicator |
-| Uniqueness — Gold | One record per country and year |
-| Type validation | Numeric indicators must be correctly typed |
-| Missing values | Null economic measurements must be identified |
-| Population validity | Non-null population must be greater than zero |
-| Record reconciliation | Source, rejected, and loaded record counts must be reconciled |
+| Complétude des pays | Le code pays ne doit pas être NULL |
+| Complétude des années | L'année ne doit pas être NULL |
+| Validité des années | Année comprise entre 2015 et 2024 |
+| Validité des pays | Pays appartenant au périmètre défini |
+| Unicité des données sources | Une ligne par pays, année et indicateur |
+| Unicité des données Gold | Une ligne par pays et année |
+| Cohérence des types | Valeurs économiques correctement typées |
+| Valeurs manquantes | Identification des valeurs NULL |
+| Validité de la population | Population strictement positive lorsqu'elle est renseignée |
+| Cohérence des volumes | Comparaison des enregistrements extraits, rejetés et chargés |
 
-Additional controls will distinguish missing values from zero values and detect unexpected changes in source records.
+Les valeurs manquantes ne seront pas remplacées automatiquement par zéro.
 
-**Planned output:** A documented data quality summary describing passed and failed checks.
+**Résultats des contrôles :** non disponibles à ce stade. Ils seront renseignés après l'exécution du pipeline.
 
-**Actual results:** Not yet available.
+## 9. Stockage des données — Google BigQuery
 
-## 9. Data Warehouse — Google BigQuery
+Google BigQuery sera utilisé comme Data Warehouse cible, sous réserve de la validation des accès et de la connectivité.
 
-Google BigQuery is the proposed analytical storage platform.
+### Datasets prévus
 
-The target warehouse will organize raw, cleaned, and analytics-ready data into separate logical layers.
+```text
+world_bank_bronze
+world_bank_silver
+world_bank_gold
+```
 
-### Proposed Datasets
-
-- `world_bank_bronze`
-- `world_bank_silver`
-- `world_bank_gold`
-
-### Proposed Gold Table
+### Table analytique principale
 
 `world_bank_gold.fact_economic_indicators`
 
-### Example Analytical Query
+### Exemple de requête SQL
 
-The following SQL illustrates a planned analysis of average inflation and unemployment by country:
+Calcul de l'inflation et du chômage moyens par pays sur la période étudiée :
 
 ```sql
 SELECT
@@ -250,49 +268,49 @@ ORDER BY
     avg_inflation_pct DESC;
 ```
 
-Replace `PROJECT_ID` with the actual Google Cloud project identifier.
+`PROJECT_ID` devra être remplacé par l'identifiant réel du projet Google Cloud.
 
-This query is illustrative and has not yet been executed against a populated project table.
+Cette requête constitue un exemple de traitement prévu. Elle n'a pas encore été exécutée sur des données chargées.
 
-## 10. Business Intelligence — Looker Studio
+## 10. Visualisation — Looker Studio
 
-The planned dashboard will provide a comparative overview of economic performance.
+Un tableau de bord interactif sera développé afin de présenter les indicateurs économiques.
 
-### Planned Visualizations
+### Analyses prévues
 
-**GDP Analysis**
-- GDP evolution by country
-- Country-level GDP comparison
-- GDP per capita trends
+**Analyse du PIB**
+- Évolution annuelle du PIB par pays
+- Comparaison du PIB entre les six pays
+- Évolution du PIB par habitant
 
-**Inflation Analysis**
-- Annual inflation trends
-- Average inflation by country
-- Comparison across selected years
+**Analyse de l'inflation**
+- Évolution des taux d'inflation
+- Comparaison entre pays
+- Analyse des variations annuelles
 
-**Unemployment Analysis**
-- Unemployment evolution
-- Cross-country unemployment comparison
-- Inflation and unemployment trend exploration
+**Analyse du chômage**
+- Évolution du taux de chômage
+- Comparaison des taux moyens
+- Analyse conjointe du chômage et de l'inflation
 
-**Population Analysis**
-- Population growth trends
-- Country-level population comparison
+**Analyse démographique**
+- Évolution de la population
+- Comparaison entre pays
 
-### Interactive Filters
+### Filtres interactifs
 
-- Country
-- Year
-- Economic indicator
+- Pays
+- Année
+- Indicateur économique
 
-**Dashboard status:** Not yet implemented.
+**Statut du dashboard :** à développer.
 
-The dashboard URL and screenshots will be added after successful development and validation.
+Le lien et les captures d'écran seront ajoutés après réalisation.
 
-## 11. Proposed Repository Structure
+## 11. Structure du dépôt GitHub
 
 ```text
-world-bank-talend-cloud-etl/
+world-bank-economic-data-pipeline/
 |
 |-- README.md
 |
@@ -320,173 +338,162 @@ world-bank-talend-cloud-etl/
 |-- .gitignore
 ```
 
-This is the proposed structure. Pipeline definitions or export files will be included only if supported by the Talend Cloud environment used during implementation.
+Cette organisation est prévisionnelle. Les fichiers seront ajoutés au fur et à mesure de l'avancement réel.
 
-No API credentials, service account keys, passwords, or sensitive configuration files will be committed to the repository.
+Les clés API, mots de passe, fichiers d'identifiants Google Cloud et autres informations sensibles ne seront pas publiés.
 
-## 12. Four-Day Implementation Roadmap
+## 12. Planning du projet — 4 jours
 
-### Day 1 — Environment Setup and API Ingestion
+### Jour 1 — Configuration et extraction
 
-- [ ] Activate Qlik Talend Cloud trial
-- [ ] Verify Pipeline Designer availability
-- [ ] Validate cloud execution engine access
-- [ ] Configure HTTP Client
-- [ ] Connect to the World Bank API
-- [ ] Validate JSON parsing
-- [ ] Confirm BigQuery connectivity or select an alternative cloud destination
+- [ ] Créer et configurer le compte Talend Cloud
+- [ ] Vérifier l'accès à Pipeline Designer
+- [ ] Vérifier la disponibilité du Cloud Engine
+- [ ] Configurer HTTP Client
+- [ ] Tester la connexion à l'API World Bank
+- [ ] Parser la réponse JSON
+- [ ] Vérifier la connexion à BigQuery
 
-**Expected deliverable:** Working API ingestion proof of concept.
+**Livrable attendu :** première extraction fonctionnelle depuis l'API World Bank.
 
-### Day 2 — Data Transformation and Quality
+### Jour 2 — Transformation et qualité
 
-- [ ] Extract four economic indicators
-- [ ] Normalize JSON records
-- [ ] Standardize country and year fields
-- [ ] Convert data types
-- [ ] Identify duplicates and missing values
-- [ ] Consolidate economic indicators
-- [ ] Implement data quality checks
+- [ ] Extraire les quatre indicateurs économiques
+- [ ] Normaliser les structures JSON
+- [ ] Convertir les types de données
+- [ ] Traiter les valeurs manquantes
+- [ ] Détecter les doublons
+- [ ] Réaliser les jointures
+- [ ] Implémenter les contrôles qualité
 
-**Expected deliverable:** Cleaned and validated economic dataset.
+**Livrable attendu :** jeu de données propre et validé.
 
-### Day 3 — Data Warehouse and SQL Analytics
+### Jour 3 — BigQuery et SQL
 
-- [ ] Create BigQuery datasets and tables
-- [ ] Load cleaned data
-- [ ] Build the analytical Gold table
-- [ ] Calculate GDP per capita
-- [ ] Execute analytical SQL queries
-- [ ] Validate record counts
-- [ ] Test repeatable loading without unexpected duplicates
+- [ ] Créer les datasets BigQuery
+- [ ] Créer les tables nécessaires
+- [ ] Charger les données nettoyées
+- [ ] Construire la table Gold
+- [ ] Calculer le PIB par habitant
+- [ ] Écrire et tester les requêtes SQL
+- [ ] Vérifier les volumes de données
+- [ ] Tester la relance du pipeline sans doublons inattendus
 
-**Expected deliverable:** Queryable analytical dataset.
+**Livrable attendu :** Data Warehouse interrogeable avec SQL.
 
-### Day 4 — Dashboard, Testing, and Documentation
+### Jour 4 — Dashboard et GitHub
 
-- [ ] Build Looker Studio dashboard
-- [ ] Add interactive filters
-- [ ] Validate dashboard metrics against SQL queries
-- [ ] Capture Talend pipeline screenshots
-- [ ] Document challenges and solutions
-- [ ] Finalize GitHub README
-- [ ] Publish project deliverables
+- [ ] Construire le dashboard Looker Studio
+- [ ] Ajouter les indicateurs et filtres
+- [ ] Comparer les résultats du dashboard avec SQL
+- [ ] Capturer les pipelines Talend Cloud
+- [ ] Documenter les difficultés rencontrées
+- [ ] Finaliser le README
+- [ ] Publier les livrables sur GitHub
 
-**Expected deliverable:** Documented end-to-end portfolio project.
+**Livrable attendu :** projet Data Engineering documenté et présentable en entretien.
 
-The four-day schedule is a target and depends on trial access, connector availability, and successful integration testing.
+Ce planning constitue un objectif. Il dépend notamment des fonctionnalités accessibles dans les environnements d'essai.
 
-## 13. Project Status and Results
+## 13. État d'avancement et résultats
 
-### Current Development Status
+### État actuel
 
-**Phase:** Planning and architecture definition.
+**Phase : préparation du projet**
 
-| Component | Status |
+| Composant | État |
 |---|---|
-| Business requirements | Defined |
-| Country selection | Defined |
-| Economic indicators | Defined |
-| Target architecture | Proposed |
-| World Bank API ingestion | Not started |
-| Talend ETL pipeline | Not started |
-| Data quality implementation | Not started |
-| BigQuery integration | Not started |
-| SQL validation | Not started |
-| Looker Studio dashboard | Not started |
-| End-to-end testing | Not started |
+| Définition du besoin métier | Défini |
+| Sélection des pays | Défini |
+| Sélection des indicateurs | Défini |
+| Architecture technique | Proposée |
+| Extraction API World Bank | Non commencée |
+| Développement ETL Talend | Non commencé |
+| Contrôles qualité | Non commencés |
+| Chargement BigQuery | Non commencé |
+| Analyses SQL | Non commencées |
+| Dashboard Looker Studio | Non commencé |
+| Tests de bout en bout | Non commencés |
 
-### Expected Results
+### Résultats attendus
 
-The project aims to deliver:
+- Pipeline d'extraction REST opérationnel
+- Données économiques transformées et standardisées
+- Contrôles qualité documentés
+- Data Warehouse interrogeable
+- Analyses SQL des indicateurs économiques
+- Dashboard interactif
+- Documentation technique sur GitHub
 
-- A working cloud-based API ingestion pipeline
-- Clean and standardized economic data
-- A queryable analytical warehouse
-- Implemented and documented data quality rules
-- SQL analyses of economic indicators
-- An interactive economic dashboard
-- A reproducible GitHub portfolio project
+### Résultats réellement obtenus
 
-### Actual Results
+À ce stade, aucune extraction, transformation, exécution Talend, insertion BigQuery ou validation de dashboard n'a encore été réalisée.
 
-No extraction, pipeline execution, warehouse load, or dashboard validation has been performed yet.
+Cette section sera mise à jour au cours du projet avec les volumes réellement chargés, les résultats des tests, les éventuelles anomalies et les captures d'écran.
 
-Once the project is implemented, this section will report:
+## 14. Difficultés techniques et solutions
 
-- Actual source records received
-- Successfully processed records
-- Missing and rejected records
-- Number of records loaded
-- Validation results
-- Pipeline execution outcomes
-- Dashboard URL and screenshots
+Les difficultés potentielles identifiées sont :
 
-Only observed and verified results will be reported.
+- Parsing des réponses JSON de l'API World Bank
+- Gestion de la pagination et des valeurs manquantes
+- Harmonisation des indicateurs économiques
+- Jointures entre jeux de données
+- Configuration de la connexion Talend–BigQuery
+- Prévention des doublons lors des chargements répétés
+- Contraintes des périodes d'essai Cloud
 
-## 14. Challenges and Engineering Decisions
+Les difficultés effectivement rencontrées, les solutions adoptées et les décisions techniques seront documentées pendant la réalisation.
 
-The following technical areas will be evaluated during implementation:
+## 15. Améliorations futures
 
-- Parsing the World Bank API response structure
-- Managing API pagination and missing observations
-- Applying consistent data types across indicators
-- Combining multiple economic datasets by country and year
-- Ensuring repeatable loads without unintended duplicates
-- Configuring secure Talend-to-BigQuery connectivity
-- Working within cloud trial limitations
+Les évolutions possibles après la première version sont :
 
-Solutions and lessons learned will be documented after implementation, rather than presented as completed work.
+- Paramétrage dynamique des pays et des périodes
+- Ingestion incrémentale
+- Planification automatique des pipelines
+- Monitoring et gestion des erreurs
+- Alertes en cas d'échec
+- Ajout d'autres indicateurs économiques
+- Développement d'un modèle dimensionnel
+- Automatisation des tests qualité
 
-## 15. Future Improvements
+Ces améliorations ne font pas partie du périmètre obligatoire des quatre premiers jours.
 
-Potential future enhancements include:
+## 16. Sources et documentation
 
-- Parameterized country and year selection
-- Incremental data ingestion
-- Automated pipeline scheduling
-- Pipeline monitoring and failure alerts
-- Additional economic indicators
-- Data quality trend monitoring
-- Dimensional data modeling
-- Automated validation and deployment
-
-These features are outside the initial four-day project scope.
-
-## 16. Data Source and References
-
-**World Bank Open Data**
+**Banque mondiale — Open Data**
 
 https://data.worldbank.org/
 
-**World Bank Indicators API**
+**Documentation API World Bank**
 
 https://datahelpdesk.worldbank.org/knowledgebase/articles/889392
 
-**Qlik Talend Documentation**
+**Documentation Qlik Talend**
 
 https://help.qlik.com/
 
-**Google BigQuery Documentation**
+**Documentation Google BigQuery**
 
 https://cloud.google.com/bigquery/docs
 
-**Looker Studio**
+**Google Looker Studio**
 
 https://lookerstudio.google.com/
 
-Economic data is provided by the World Bank. Indicator definitions, sources, and licensing conditions should be reviewed before redistribution.
+Les données économiques proviennent de la Banque mondiale. Les définitions, les sources et les conditions de réutilisation des indicateurs devront être respectées.
 
-## 17. Project Purpose
+## 17. Objectif professionnel
 
-This project is developed as a **Data Engineering portfolio project** to demonstrate the design and implementation of a cloud-based data integration workflow.
+Ce projet est réalisé dans le cadre d'un **portfolio Data Engineering**.
 
-It focuses on practical experience with REST APIs, ETL transformations, cloud storage, SQL analytics, data quality, and technical documentation.
+Il vise à démontrer la capacité à concevoir et à mettre en œuvre une chaîne complète d'intégration de données économiques : ingestion depuis une API REST, transformations ETL, contrôles de qualité, stockage analytique, analyses SQL et visualisation.
 
-The objective is to deliver an understandable, testable, and well-documented data pipeline using modern Data Engineering practices.
+L'objectif final est de disposer d'un projet Cloud reproductible, documenté et présentable lors d'un entretien technique pour un poste de Data Engineer.
 
 ---
 
-**Project:** World Bank Economic Data Pipeline  
-**Focus:** Data Engineering | ETL | Cloud Analytics  
-**Status:** Planning — Implementation Pending
+**Projet :** World Bank Economic Data Pipeline  
+**Domaine :** Data Engineering / ETL / Cloud Analytics  
+**Statut :** En préparation — Développement à venir
