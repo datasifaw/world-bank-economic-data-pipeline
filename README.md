@@ -1,4 +1,4 @@
-# 🌍 World Bank Economic Data Pipeline
+# 🌍 World Bank Economic Data Pipeline :
 
 **Projet Data Engineering de bout en bout — World Bank REST API · Qlik Talend Studio 8 · Microsoft SQL Server · Power BI**
 
