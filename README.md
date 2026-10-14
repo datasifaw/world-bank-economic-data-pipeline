@@ -1,767 +1,292 @@
-# 🌍 World Bank Economic Data Pipeline :
+# 🌍 World Bank Economic Data Pipeline
 
-### Projet Data Engineering de bout en bout — API REST · Talend Studio 8 · SQL Server · Power BI
+**Projet Data Engineering de bout en bout — World Bank REST API · Qlik Talend Studio 8 · Microsoft SQL Server · Power BI**
 
-![Statut](https://img.shields.io/badge/Statut-En%20cours-yellow)
-![Talend](https://img.shields.io/badge/ETL-Talend%20Studio%208-orange)
-![SQL Server](https://img.shields.io/badge/Database-Microsoft%20SQL%20Server-blue)
+![Statut](https://img.shields.io/badge/Statut-Version%20fonctionnelle-success)
+![ETL](https://img.shields.io/badge/ETL-Qlik%20Talend%20Studio%208-orange)
+![SQL Server](https://img.shields.io/badge/Stockage-SQL%20Server-blue)
 ![Power BI](https://img.shields.io/badge/BI-Power%20BI-yellow)
-![World Bank](https://img.shields.io/badge/API-World%20Bank-green)
+![Source](https://img.shields.io/badge/Source-World%20Bank-green)
 
-## 1. Présentation du projet
+## 1. Présentation
 
-Ce projet consiste à concevoir et développer un **pipeline ETL (Extract, Transform, Load) de bout en bout** permettant d'extraire, transformer, contrôler et analyser des indicateurs économiques provenant de l'API REST de la Banque mondiale (World Bank).
+Ce projet de portfolio illustre la conception et la réalisation d'un pipeline de données économiques **de l'extraction à la visualisation**. Les données proviennent de l'API REST publique de la Banque mondiale, sont extraites et transformées dans **Qlik Talend Studio 8**, chargées dans **Microsoft SQL Server**, puis analysées avec **Power BI Desktop**.
 
-Les données seront récupérées au format JSON, transformées avec **Talend Studio 8**, puis chargées dans une base **Microsoft SQL Server**.
+Le pipeline traite quatre indicateurs pour six pays. Les exécutions vérifiées ont produit **264 observations** dans la couche Silver, couvrant **2015 à 2025**. Une valeur manquante est conservée comme `NULL` plutôt que remplacée artificiellement par zéro.
 
-Les données consolidées serviront ensuite à construire un tableau de bord interactif avec **Microsoft Power BI**.
+> **Périmètre réellement livré :** extraction Talend, chargements Bronze, transformations SQL vers Silver, contrôles qualité et tableau de bord Power BI. La couche Gold, l'orchestration automatique et le chargement Bronze idempotent font partie des améliorations futures.
 
-Ce projet est développé dans le cadre d'un **portfolio Data Engineering** afin de démontrer des compétences techniques en ingestion de données, développement ETL, qualité des données, modélisation SQL et Business Intelligence.
+## 2. Problématique et objectifs
 
-### Objectifs techniques
+**Comment comparer l'évolution du PIB, de l'inflation, du chômage et de la population dans six grandes économies entre 2015 et 2025 ?**
 
-- Consommer une API REST publique.
-- Extraire et parser des données JSON.
-- Concevoir des Jobs ETL avec Talend Studio 8.
-- Nettoyer, transformer et normaliser les données économiques.
-- Implémenter des contrôles qualité.
-- Charger les données dans SQL Server.
-- Structurer les données selon une architecture Bronze, Silver et Gold.
-- Exécuter des requêtes SQL analytiques.
-- Concevoir un tableau de bord Power BI.
-- Versionner les Jobs Talend avec Git et documenter le projet sur GitHub.
+Le projet vise à :
 
-**Statut actuel :** environnement Talend Studio 8 configuré, licence activée et projet distant reconnu. Développement ETL à commencer.
-
----
-
-## 2. Contexte et problématique métier
-
-La Banque mondiale met à disposition de nombreux indicateurs économiques concernant les pays du monde.
-
-Ces données sont accessibles via une API REST, mais leur exploitation nécessite plusieurs traitements :
-
-- Extraction des données depuis différentes requêtes API.
-- Harmonisation des structures JSON.
-- Gestion des valeurs nulles.
-- Standardisation des codes pays et des années.
-- Consolidation de plusieurs indicateurs.
-- Vérification de la cohérence des données.
-
-### Problématique métier
-
-**Comment le PIB, l'inflation, le chômage et la population ont-ils évolué dans six grandes économies mondiales entre 2015 et 2024 ?**
-
-Le projet vise à créer un système d'intégration et d'analyse permettant de comparer ces indicateurs dans le temps et entre les pays.
-
-### Questions analytiques
-
-1. Comment le PIB a-t-il évolué entre 2015 et 2024 ?
-2. Quels pays affichent les taux d'inflation les plus élevés ?
-3. Comment le chômage a-t-il évolué selon les pays ?
-4. Quelle est l'évolution du PIB par habitant ?
-5. Quelles différences économiques observe-t-on entre les pays étudiés ?
-
----
+- Collecter des données via une API REST au format JSON.
+- Transformer des réponses JSON en données tabulaires avec Talend Studio.
+- Stocker les observations dans SQL Server en séparant **Bronze** et **Silver**.
+- Vérifier la couverture, l'unicité, les valeurs manquantes et la cohérence des données.
+- Construire des visualisations interactives avec Power BI.
+- Versionner les scripts et les Jobs sur GitHub.
 
 ## 3. Périmètre des données
 
-### Pays étudiés
+### Pays
 
-| Pays | Code ISO |
+| Pays | Code ISO 3 |
 |---|---|
-| France | FRA |
-| Allemagne | DEU |
-| États-Unis | USA |
-| Chine | CHN |
-| Japon | JPN |
-| Inde | IND |
+| France | `FRA` |
+| Allemagne | `DEU` |
+| États-Unis | `USA` |
+| Chine | `CHN` |
+| Japon | `JPN` |
+| Inde | `IND` |
 
-### Indicateurs économiques
+### Indicateurs
 
 | Indicateur | Code World Bank | Unité |
 |---|---|---|
-| Produit intérieur brut | `NY.GDP.MKTP.CD` | Dollars US courants |
-| Inflation annuelle | `FP.CPI.TOTL.ZG` | Pourcentage annuel |
-| Taux de chômage | `SL.UEM.TOTL.ZS` | Pourcentage de la population active |
-| Population totale | `SP.POP.TOTL` | Nombre d'habitants |
+| Produit intérieur brut | `NY.GDP.MKTP.CD` | USD courants |
+| Inflation annuelle | `FP.CPI.TOTL.ZG` | % annuel |
+| Taux de chômage | `SL.UEM.TOTL.ZS` | % de la population active |
+| Population totale | `SP.POP.TOTL` | Habitants |
 
-**Période d'analyse : 2015–2024**
+**Période interrogée :** `2015:2026`. **Période des observations présentes lors des tests :** `2015–2025`. L'année 2026 ne disposait pas encore de valeurs annuelles dans les réponses testées.
 
-### Volume théorique
+### Résultats mesurés dans SQL Server — couche Silver
 
-- 6 pays
-- 4 indicateurs
-- 10 années
+| Indicateur | Observations | Pays | Années | Valeurs `NULL` |
+|---|---:|---:|---|---:|
+| PIB | 66 | 6 | 2015–2025 | 0 |
+| Inflation | 66 | 6 | 2015–2025 | 1 |
+| Chômage | 66 | 6 | 2015–2025 | 0 |
+| Population | 66 | 6 | 2015–2025 | 0 |
+| **Total** | **264** | **6** | **2015–2025** | **1** |
 
-Soit **240 observations potentielles** avant prise en compte des données manquantes.
+**Valeur manquante constatée :** `USA / 2025 / FP.CPI.TOTL.ZG / NULL`.
 
-Le jeu analytique consolidé contiendra jusqu'à **60 combinaisons pays-année**.
+## 4. Architecture réalisée
 
-Les volumes définitifs seront mesurés après extraction et validation des données.
+```text
+World Bank Indicators API V2
+             │ HTTPS / JSON
+             ▼
+Qlik Talend Studio 8 (Windows)
+  ├─ tHTTPClient : appels REST
+  ├─ tExtractJSONFields : parsing JSON
+  ├─ tReplicate / tLogRow : contrôle des flux
+  ├─ tMap : mapping des données
+  └─ tDBOutput : chargement SQL Server
+             │ JDBC / authentification Windows
+             ▼
+Microsoft SQL Server Express — WorldBankEconomicDB
+  ├─ bronze.world_bank_raw
+  │    └─ Données tabulaires ingérées depuis Talend
+  └─ silver.economic_indicators
+       └─ Clé unique métier, déduplication et contrôles
+             │ Connecteur SQL Server (Import)
+             ▼
+Power BI Desktop
+  └─ Tableau de bord des quatre indicateurs
+```
 
----
+La transformation **Bronze → Silver** et les contrôles qualité ont été exécutés au moyen de scripts SQL dans **SQL Server Management Studio 22 (SSMS)**. Aucune table Gold n'est annoncée comme livrée.
 
-## 4. Technologies utilisées
+## 5. Technologies et environnement
 
-| Technologie | Rôle |
+| Technologie | Utilisation |
 |---|---|
-| World Bank REST API | Source des données économiques |
-| Talend Studio 8 | Développement des Jobs ETL |
-| Qlik Talend Cloud | Gestion des projets, licence et collaboration |
-| Microsoft SQL Server | Stockage des données |
-| SQL Server Management Studio 22 | Administration et requêtes SQL |
-| Microsoft Power BI | Reporting et visualisation |
-| Git / GitHub | Versionnement du projet |
-| Java JDK | Environnement nécessaire à Talend Studio |
+| World Bank Indicators API V2 | Source publique des indicateurs |
+| Qlik Talend Studio 8, mise à jour R2026-09 | Extraction, parsing, mappings et chargement Bronze |
+| Qlik Talend Cloud | Projet Studio et gestion de licence/collaboration |
+| Microsoft SQL Server Express | Base de données locale |
+| SSMS 22 | Scripts SQL, contrôles et administration |
+| Power BI Desktop | Préparation et visualisation des données |
+| Git / GitHub | Versionnement, commits et Pull Request |
+| Java JDK | Environnement d'exécution des Jobs Talend |
 
-### Environnement de développement
+**Environnement de développement :** Windows, instance SQL Server `localhost\SQLEXPRESS`, base `WorldBankEconomicDB`. Ces valeurs sont spécifiques à l'installation de démonstration et doivent être adaptées pour reproduire le projet.
 
-- Système d'exploitation : Windows
-- ETL : Talend Studio 8
-- Licence : Qlik Talend Cloud Enterprise Edition — essai gratuit
-- Région Cloud : France
-- Projet Talend : `World_Bank_Economic_Data_Pipeline`
-- Branche Git : `main`
+## 6. Source et extraction API
 
-**Note :** la licence Talend Studio utilisée est temporaire. La reproductibilité future du projet dépendra de la disponibilité d'une licence compatible.
+Documentation officielle : [World Bank Indicators API](https://datahelpdesk.worldbank.org/knowledgebase/articles/889392).
 
----
-
-## 5. Architecture technique
-
-L'architecture cible est la suivante :
+Exemple de requête PIB :
 
 ```text
-+--------------------------------------+
-|          WORLD BANK REST API         |
-|                                      |
-|  GDP | Inflation | Unemployment      |
-|             Population               |
-+------------------+-------------------+
-                   |
-                   | HTTPS / JSON
-                   v
-+--------------------------------------+
-|             TALEND STUDIO 8          |
-|                                      |
-|  1. Extraction API REST              |
-|  2. Parsing JSON                     |
-|  3. Nettoyage des données            |
-|  4. Transformation                   |
-|  5. Contrôles qualité                |
-|  6. Chargement des données           |
-+------------------+-------------------+
-                   |
-                   | JDBC
-                   v
-+--------------------------------------+
-|         MICROSOFT SQL SERVER         |
-|                                      |
-|  BRONZE : Données brutes             |
-|  SILVER : Données nettoyées          |
-|  GOLD   : Données analytiques        |
-+------------------+-------------------+
-                   |
-                   | SQL
-                   v
-+--------------------------------------+
-|             MICROSOFT POWER BI       |
-|                                      |
-|  KPI | Graphiques | Comparaisons     |
-|             Tableau de bord          |
-+--------------------------------------+
+https://api.worldbank.org/v2/country/FRA;DEU;USA;CHN;JPN;IND/indicator/NY.GDP.MKTP.CD?format=json&date=2015:2026&per_page=1000
 ```
 
-**Statut de l'architecture :** proposée, pas encore exécutée de bout en bout.
+Les mêmes paramètres sont utilisés pour l'inflation (`FP.CPI.TOTL.ZG`), le chômage (`SL.UEM.TOTL.ZS`) et la population (`SP.POP.TOTL`). L'API publique utilisée ne requiert pas de jeton d'authentification.
 
----
+Les réponses comportent des métadonnées puis un tableau d'observations. Talend utilise la boucle JSONPath `"$[1][*]"` pour parcourir les observations et extraire les champs requis.
 
-## 6. Organisation des données : Bronze, Silver et Gold
+## 7. Jobs Talend réalisés
 
-Le projet utilisera une architecture en trois niveaux afin de séparer les données sources, les données nettoyées et les données destinées aux analyses.
+Les huit Jobs ont été développés et validés par des exécutions locales :
 
-### Bronze — Données brutes
+| Job | Rôle |
+|---|---|
+| `JOB_01_WorldBank_GDP_Extraction` | Extraction et parsing du PIB |
+| `JOB_02_WorldBank_Indicators_Extraction` | Extraction de l'inflation |
+| `JOB_03_WorldBank_Unemployment_Extraction` | Extraction du chômage |
+| `JOB_04_WorldBank_Population_Extraction` | Extraction de la population |
+| `JOB_05_WorldBank_Bronze_Load` | Chargement du PIB dans Bronze |
+| `JOB_06_WorldBank_Inflation_Bronze_Load` | Chargement de l'inflation dans Bronze |
+| `JOB_07_WorldBank_Unemployment_Bronze_Load` | Chargement du chômage dans Bronze |
+| `JOB_08_WorldBank_Population_Bronze_Load` | Chargement de la population dans Bronze |
 
-Cette couche conservera les données récupérées depuis l'API World Bank.
+Les Jobs de chargement utilisent notamment `tHTTPClient → tExtractJSONFields → tReplicate → tMap → tDBOutput`, avec une branche `tLogRow` pour inspecter les données.
 
-Informations prévues :
+**Dépôt technique :** [world-bank-talend-studio](https://github.com/datasifaw/world-bank-talend-studio).
 
-- Pays
-- Code de l'indicateur
-- Année
-- Valeur économique
-- Source de données
-- Date et heure d'extraction
-- Identifiant du lot d'ingestion
+## 8. Organisation des données SQL Server
 
-Objectif : préserver la traçabilité des données sources.
+Base : **`WorldBankEconomicDB`**.
 
-### Silver — Données nettoyées
+### Bronze — `bronze.world_bank_raw`
 
-Cette couche contiendra les données standardisées.
-
-Transformations prévues :
-
-- Extraction des champs JSON utiles
-- Standardisation des codes pays
-- Conversion des types numériques
-- Contrôle des années
-- Détection des doublons
-- Gestion des valeurs manquantes
-- Contrôle des valeurs incohérentes
-
-Objectif : fournir des données fiables pour les traitements analytiques.
-
-### Gold — Données analytiques
-
-Cette couche contiendra les données consolidées et structurées pour les requêtes SQL et Power BI.
-
-Traitements prévus :
-
-- Jointures entre les indicateurs
-- Consolidation par pays et année
-- Calcul du PIB par habitant
-- Préparation des indicateurs KPI
-- Optimisation des données pour le reporting 
-
----
-
-## 7. Source de données : API REST World Bank
-
-La source officielle utilisée est la **World Bank Indicators API V2**.
-
-Documentation :
-
-https://datahelpdesk.worldbank.org/knowledgebase/articles/889392
-
-### Requête API — PIB
-
-```text
-https://api.worldbank.org/v2/country/FRA;DEU;USA;CHN;JPN;IND/indicator/NY.GDP.MKTP.CD?format=json&date=2015:2024&per_page=1000
-```
-
-### Requête API — Inflation
-
-```text
-https://api.worldbank.org/v2/country/FRA;DEU;USA;CHN;JPN;IND/indicator/FP.CPI.TOTL.ZG?format=json&date=2015:2024&per_page=1000
-```
-
-### Requête API — Chômage
-
-```text
-https://api.worldbank.org/v2/country/FRA;DEU;USA;CHN;JPN;IND/indicator/SL.UEM.TOTL.ZS?format=json&date=2015:2024&per_page=1000
-```
-
-### Requête API — Population
-
-```text
-https://api.worldbank.org/v2/country/FRA;DEU;USA;CHN;JPN;IND/indicator/SP.POP.TOTL?format=json&date=2015:2024&per_page=1000
-```
-
-Les requêtes utilisent le protocole HTTPS et renvoient des données au format JSON.
-
-L'API fournit également des métadonnées de pagination qui seront prises en compte dans les contrôles d'extraction.
-
----
-
-## 8. Développement des Jobs Talend Studio 8
-
-Le développement sera organisé en plusieurs Jobs ETL.
-
-### Job 01 — Extraction des données PIB
-
-**Nom prévu :** `JOB_01_WorldBank_GDP_Extraction`
-
-Objectif :
-
-- Envoyer une requête HTTP à l'API World Bank.
-- Vérifier la réponse HTTP.
-- Récupérer les observations PIB.
-- Parser la réponse JSON.
-- Convertir les données au format tabulaire.
-- Afficher et contrôler les premières lignes.
-
-Composants Talend envisagés :
-
-- `tRESTClient` ou `tHttpRequest`, selon disponibilité
-- `tExtractJSONFields`
-- `tMap`
-- `tLogRow`
-
-### Job 02 — Extraction des autres indicateurs
-
-**Nom prévu :** `JOB_02_WorldBank_Indicators_Extraction`
-
-Objectif :
-
-- Extraire les données d'inflation.
-- Extraire les taux de chômage.
-- Extraire les populations.
-- Normaliser les structures.
-- Préparer les données pour leur intégration.
-
-### Job 03 — Nettoyage et transformation
-
-**Nom prévu :** `JOB_03_Economic_Data_Transformation`
-
-Objectif :
-
-- Convertir les types.
-- Contrôler les valeurs nulles.
-- Standardiser les données.
-- Identifier les doublons.
-- Effectuer les jointures.
-- Calculer les métriques dérivées.
-
-Composants envisagés :
-
-- `tMap`
-- `tFilterRow`
-- `tUniqRow`
-- `tLogRow`
-
-### Job 04 — Chargement SQL Server
-
-**Nom prévu :** `JOB_04_SQLServer_Data_Load`
-
-Objectif :
-
-- Établir la connexion SQL Server.
-- Charger les tables Bronze et Silver.
-- Construire la table Gold.
-- Contrôler les volumes insérés.
-- Gérer les erreurs de chargement.
-
-Composants envisagés :
-
-- `tMSSqlConnection`
-- `tMSSqlInput`
-- `tMSSqlOutput`
-- `tMSSqlCommit`
-
-Les composants définitifs seront confirmés pendant le développement dans Talend Studio 8.
-
----
-
-## 9. Base de données Microsoft SQL Server
-
-SQL Server sera utilisé comme base de données cible.
-
-### Base prévue
-
-`WorldBank_Economic_DB`
-
-### Schémas SQL prévus
-
-```text
-WorldBank_Economic_DB
-|
-|-- bronze
-|    |-- raw_economic_indicators
-|
-|-- silver
-|    |-- clean_economic_indicators
-|
-|-- gold
-     |-- fact_economic_indicators
-```
-
-### Structure analytique Gold
-
-| Colonne | Type SQL Server | Description |
+| Colonne | Type SQL Server | Rôle |
 |---|---|---|
-| country_code | VARCHAR(3) | Code ISO du pays |
-| country_name | NVARCHAR(100) | Nom du pays |
-| year | INT | Année de référence |
-| gdp_usd | DECIMAL(28,2) | PIB en USD |
-| inflation_pct | FLOAT | Taux d'inflation |
-| unemployment_pct | FLOAT | Taux de chômage |
-| population | BIGINT | Population totale |
-| gdp_per_capita | DECIMAL(20,2) | PIB par habitant |
-| load_timestamp | DATETIME2 | Date de chargement |
+| `id` | `BIGINT IDENTITY` | Identifiant technique |
+| `country_code` | `VARCHAR(3)` | Pays |
+| `year` | `INT` | Année |
+| `indicator_code` | `VARCHAR(30)` | Indicateur |
+| `value` | `FLOAT NULL` | Valeur éventuellement manquante |
+| `loaded_at` | `DATETIME2` | Horodatage de chargement UTC |
 
-Clé métier prévue : `(country_code, year)`.
+### Silver — `silver.economic_indicators`
 
-### Exemple de requête SQL
+| Colonne | Type SQL Server | Rôle |
+|---|---|---|
+| `country_code` | `VARCHAR(3)` | Pays |
+| `year` | `INT` | Année |
+| `indicator_code` | `VARCHAR(30)` | Indicateur |
+| `value` | `FLOAT NULL` | Valeur contrôlée |
+| `updated_at` | `DATETIME2` | Horodatage de mise à jour UTC |
 
-Analyse du PIB et du PIB par habitant :
+La table Silver possède une **clé primaire composée** `(country_code, year, indicator_code)` et une contrainte sur la plage d'années. Le chargement SQL Silver applique une sélection déterministe des observations et met à jour ou insère les lignes selon leur clé métier.
 
-```sql
-SELECT
-    country_name,
-    year,
-    gdp_usd,
-    population,
-    gdp_per_capita
-FROM gold.fact_economic_indicators
-WHERE year BETWEEN 2015 AND 2024
-ORDER BY country_name, year;
-```
+### Scripts SQL versionnés
 
-Cette requête représente une analyse prévue. Elle n'a pas encore été exécutée sur la base du projet.
-
----
-
-## 10. Contrôles qualité des données
-
-Des règles de validation seront mises en place à chaque étape du pipeline.
-
-| Contrôle | Règle |
+| Script | Objet |
 |---|---|
-| Complétude | Le pays et l'année ne doivent pas être NULL |
-| Validité des années | Année comprise entre 2015 et 2024 |
-| Validité des codes pays | Code appartenant aux six pays étudiés |
-| Unicité source | Une ligne par pays, année et indicateur |
-| Unicité Gold | Une ligne par pays et année |
-| Cohérence des types | Indicateurs correctement typés |
-| Valeurs manquantes | Identification et suivi des NULL |
-| Population | Valeur strictement positive lorsqu'elle est renseignée |
-| Chargement | Contrôle des volumes extraits, rejetés et chargés |
+| `sql/01_create_database.sql` | Création de la base |
+| `sql/02_create_bronze_table.sql` | Création de Bronze |
+| `sql/03_deduplicate_bronze.sql` | Correction documentée des doublons PIB |
+| `sql/04_create_silver_table.sql` | Création de Silver |
+| `sql/05_load_silver.sql` | Nettoyage et chargement Bronze → Silver |
+| `sql/06_quality_checks_silver.sql` | Vérifications de qualité |
 
-Les valeurs économiques manquantes ne seront pas remplacées automatiquement par zéro.
+## 9. Contrôles qualité et résultats
 
-### Résultats qualité
+Des requêtes SQL ont été exécutées sur `silver.economic_indicators` pour vérifier :
 
-**À compléter après l'exécution des Jobs Talend.**
+| Contrôle | Résultat constaté |
+|---|---|
+| Couverture par indicateur | 66 observations et 6 pays par indicateur |
+| Années présentes | 2015–2025 |
+| Doublons `(pays, année, indicateur)` | Aucun détecté |
+| Pays, années ou indicateurs hors périmètre | Aucun détecté |
+| Valeurs économiques incohérentes selon les règles implémentées | Aucune détectée |
+| Valeurs manquantes | 1 : inflation USA 2025 |
+| Volume consolidé Silver | 264 observations |
 
-Les indicateurs suivants seront suivis :
+Les règles de cohérence vérifient notamment que les valeurs non nulles de PIB et de population sont positives et que le taux de chômage se situe entre 0 et 100. Une inflation négative peut être économiquement valide : elle n'est pas automatiquement rejetée.
 
-- Nombre de lignes extraites
-- Nombre de lignes valides
-- Nombre de lignes rejetées
-- Nombre de doublons
-- Nombre de valeurs manquantes
-- Nombre de lignes chargées dans SQL Server
+**Incident rencontré :** une réexécution du Job de chargement du PIB avait ajouté 66 doublons en Bronze. Ces lignes ont été identifiées et supprimées de façon contrôlée, avec un script SQL versionné. La clé primaire Silver protège contre les doublons logiques à ce niveau.
 
----
+## 10. Tableau de bord Power BI
 
-## 11. Dashboard Microsoft Power BI
+Power BI Desktop est connecté à `silver.economic_indicators` en **mode Import**, avec l'authentification Windows vers SQL Server Express.
 
-Le tableau de bord Power BI permettra d'explorer les données économiques des six pays.
+Des colonnes de présentation ont été ajoutées dans Power Query : `country_name` et `indicator_name`.
 
-### Indicateurs KPI prévus
+Le tableau de bord comprend quatre visualisations :
 
-- PIB total par pays
-- PIB par habitant
-- Inflation moyenne
-- Taux de chômage moyen
-- Évolution de la population
+1. **PIB par pays (2025)** : barres de comparaison en dollars US courants.
+2. **Inflation par pays (2015–2025)** : courbes annuelles.
+3. **Chômage par pays (2015–2025)** : courbes annuelles.
+4. **Population par pays (2015–2025)** : évolution démographique.
 
-### Visualisations prévues
+Les filtres de visuel isolent les indicateurs pour éviter d'additionner des mesures de nature différente. La valeur manquante d'inflation américaine en 2025 reste vide.
 
-**Analyse du PIB**
-- Évolution annuelle du PIB
-- Comparaison entre pays
-- PIB par habitant
+**Rapport :** `powerbi/World_Bank_Economic_Dashboard.pbix` (si ce chemin est bien celui utilisé dans le dépôt principal).
 
-**Analyse de l'inflation**
-- Évolution annuelle
-- Comparaison des taux d'inflation
-- Analyse des variations
+> Le fichier `.pbix` peut contenir une copie des données importées et des informations techniques sur la connexion locale. Son contenu doit être vérifié avant de le partager publiquement ; les identifiants et secrets ne doivent jamais être publiés.
 
-**Analyse du chômage**
-- Évolution des taux
-- Comparaisons internationales
-- Tendances historiques
-
-**Analyse démographique**
-- Population par pays
-- Évolution annuelle
-- Comparaison des populations
-
-### Filtres
-
-- Pays
-- Année
-- Indicateur économique
-
-**Statut :** dashboard non encore développé.
-
----
-
-## 12. Organisation GitHub
-
-Le projet est organisé en deux dépôts complémentaires.
+## 11. Dépôts GitHub et stratégie de branches
 
 ### Dépôt principal — Portfolio
 
-**[world-bank-economic-data-pipeline](https://github.com/datasifaw/world-bank-economic-data-pipeline)**
+**[datasifaw/world-bank-economic-data-pipeline](https://github.com/datasifaw/world-bank-economic-data-pipeline)**
 
-Ce dépôt est consacré à la présentation du projet.
-
-Il contiendra le README, la documentation technique, les scripts SQL, les captures d'écran, les contrôles qualité et les résultats.
+Contient la documentation, les scripts SQL et les éléments de présentation Power BI. La branche principale utilisée pour les livrables est `main`.
 
 ### Dépôt technique — Talend Studio
 
-**[world-bank-talend-studio](https://github.com/datasifaw/world-bank-talend-studio)**
+**[datasifaw/world-bank-talend-studio](https://github.com/datasifaw/world-bank-talend-studio)**
 
-Ce dépôt est lié au projet distant Talend Studio 8.
+Le développement a été réalisé sur la branche **`test-migration-r2026-09`**, créée pour tester la migration de Studio sans affecter `main`.
 
-Il est destiné au versionnement des Jobs ETL et des fichiers techniques générés par Talend Studio.
+La **Pull Request #1 — « Intégration des Jobs Talend World Bank validés »** a été **fusionnée dans `main` le 14 octobre 2026**. GitHub indiquait **12 commits** intégrés et **187 fichiers modifiés**.
 
-**Branche utilisée :** `main`.
+La branche de migration peut être conservée pour référence ; la version fusionnée est accessible depuis `main`.
 
-### Organisation prévue du dépôt principal
+## 12. Reproduire le projet
 
-```text
-world-bank-economic-data-pipeline/
-|
-|-- README.md
-|
-|-- docs/
-|   |-- architecture.md
-|   |-- data_dictionary.md
-|   |-- data_quality.md
-|   |-- installation_talend.md
-|
-|-- sql/
-|   |-- create_database.sql
-|   |-- create_tables.sql
-|   |-- transformations.sql
-|   |-- data_quality_checks.sql
-|   |-- analytical_queries.sql
-|
-|-- data_samples/
-|   |-- sample_worldbank_response.json
-|
-|-- screenshots/
-|   |-- talend_jobs/
-|   |-- sql_server/
-|   |-- power_bi/
-|
-|-- .gitignore
-```
+### Prérequis
 
-Les fichiers seront ajoutés progressivement lors du développement.
+- Windows, Java/JDK compatible et accès à une installation Talend Studio 8 fonctionnelle avec licence adaptée.
+- Une instance Microsoft SQL Server accessible et SSMS pour exécuter les scripts.
+- Power BI Desktop.
+- Accès à l'API World Bank et aux dépôts GitHub.
 
-Aucun mot de passe, jeton d'accès Talend, identifiant sensible ou secret de connexion SQL Server ne sera publié.
+### Procédure
 
----
+1. Récupérer les scripts SQL du dépôt principal et les Jobs du dépôt technique Talend.
+2. Configurer la connexion SQL Server locale, puis exécuter `01_create_database.sql`, `02_create_bronze_table.sql` et `04_create_silver_table.sql`.
+3. Adapter dans les Jobs Talend les paramètres de connexion JDBC et d'authentification à l'environnement local.
+4. Exécuter les Jobs d'extraction pour contrôler les réponses API, puis les Jobs de chargement Bronze **sur une table vide ou dans une stratégie de chargement contrôlée**.
+5. Exécuter `05_load_silver.sql`, puis `06_quality_checks_silver.sql`.
+6. Ouvrir le rapport Power BI, adapter sa source SQL Server et actualiser les données.
 
-## 13. État d'avancement réel
+**Limite actuelle :** les Jobs Bronze utilisent l'action SQL **« Insérer »**. Ils ne sont **pas encore idempotents** : plusieurs exécutions sans purge/stratégie de fusion peuvent produire des doublons. Il ne faut donc pas les relancer librement sur les mêmes données. Le script `03_deduplicate_bronze.sql` documente un correctif appliqué au PIB, mais ne remplace pas un mécanisme générique d'ingestion idempotente.
 
-### Configuration initiale
+Les valeurs publiées par la Banque mondiale peuvent évoluer lors de futures actualisations de l'API : les chiffres et volumes constatés ici correspondent aux tests réalisés en octobre 2026.
 
-- [x] Création du compte Qlik Talend Cloud
-- [x] Activation de l'essai Talend Cloud Enterprise Edition
-- [x] Téléchargement de Talend Studio 8
-- [x] Installation et configuration de Java
-- [x] Premier démarrage de Talend Studio
-- [x] Activation de la licence Talend Studio
-- [x] Connexion à Talend Cloud France
-- [x] Création du dépôt GitHub principal
-- [x] Création du dépôt GitHub technique
-- [x] Création du projet dans Talend Management Console
-- [x] Attribution du collaborateur au projet
-- [x] Reconnaissance du projet dans Talend Studio
-- [x] Sélection de la branche Git `main`
-- [ ] Ouverture complète de l'éditeur de projet Talend
+## 13. Difficultés techniques résolues
 
-### Développement ETL
+- **Configuration Talend Studio / JDK et licence Cloud :** adaptation de l'environnement local, activation de la licence et accès au projet partagé.
+- **Migration Talend Studio R2026-09 :** travail sur branche Git dédiée, puis fusion de la Pull Request vers `main`.
+- **Dépendances JSON :** installation des bibliothèques nécessaires à `tExtractJSONFields` et configuration de la boucle JSONPath.
+- **Authentification SQL Server :** connexion JDBC à l'instance SQL Server Express locale, port TCP 1433 et authentification Windows intégrée. La bibliothèque `mssql-jdbc_auth-13.2.1.x64.dll` a été rendue accessible au processus Java.
+- **Valeurs manquantes :** conservation du `NULL` de l'inflation pour les États-Unis en 2025.
+- **Doublons Bronze :** détection puis suppression contrôlée de 66 doublons de PIB.
+- **Power BI :** correction des filtres par visuel pour séparer les indicateurs et éviter les agrégations incorrectes.
 
-- [ ] Création du premier Job Talend
-- [ ] Connexion à l'API World Bank
-- [ ] Extraction des données PIB
-- [ ] Extraction des quatre indicateurs
-- [ ] Parsing JSON
-- [ ] Transformations et nettoyage
-- [ ] Contrôles qualité
-- [ ] Connexion à Microsoft SQL Server
-- [ ] Chargement Bronze
-- [ ] Chargement Silver
-- [ ] Chargement Gold
-- [ ] Tests de bout en bout
+## 14. Limites et améliorations futures
 
-### Reporting et documentation
+Cette version est **fonctionnelle pour le périmètre validé**. Les évolutions envisagées sont :
 
-- [ ] Développement du dashboard Power BI
-- [ ] Validation des indicateurs KPI
-- [ ] Captures d'écran des Jobs Talend
-- [ ] Documentation des erreurs et solutions
-- [ ] Ajout des résultats réels
-- [ ] Finalisation du portfolio GitHub
+- Rendre les chargements Bronze **idempotents** (fusion, clé métier ou stratégie de remplacement contrôlé).
+- Créer une **couche Gold** analytique, avec par exemple le PIB par habitant et une table consolidée pays-année.
+- Ajouter un Job orchestrateur, des paramètres dynamiques et une planification automatique.
+- Mettre en place des tests automatisés, des alertes et un suivi des exécutions.
+- Ajouter des captures d'écran et un dictionnaire de données complet au dépôt.
+- Améliorer la portabilité des paramètres de connexion et la documentation de déploiement.
+
+## 15. Références
+
+- [World Bank Open Data](https://data.worldbank.org/)
+- [World Bank Indicators API](https://datahelpdesk.worldbank.org/knowledgebase/articles/889392)
+- [Documentation Qlik Talend](https://help.qlik.com/)
+- [Documentation Microsoft SQL Server](https://learn.microsoft.com/sql/)
+- [Documentation Microsoft Power BI](https://learn.microsoft.com/power-bi/)
+- [Dépôt technique Talend Studio](https://github.com/datasifaw/world-bank-talend-studio)
 
 ---
 
-## 14. Plan de développement — 4 jours
-
-Le projet était initialement prévu sur quatre jours. Une partie du temps a été consacrée à la configuration de Talend Studio et de son intégration Cloud/Git.
-
-Le planning ci-dessous constitue donc une **feuille de route cible pour les quatre journées de développement**, et non une affirmation que ces travaux ont déjà été réalisés.
-
-### Jour 1 — Extraction API
-
-- Créer le premier Job Talend.
-- Configurer l'appel à l'API World Bank.
-- Parser les données JSON.
-- Tester l'extraction du PIB.
-- Contrôler les premiers résultats.
-
-**Livrable attendu :** premier Job d'extraction fonctionnel.
-
-### Jour 2 — Transformations ETL
-
-- Extraire les quatre indicateurs.
-- Normaliser les structures.
-- Nettoyer les données.
-- Implémenter les règles qualité.
-- Préparer les tables Bronze et Silver.
-
-**Livrable attendu :** données économiques standardisées.
-
-### Jour 3 — SQL Server
-
-- Configurer la connexion SQL Server.
-- Créer la base et les schémas.
-- Charger les données.
-- Construire la table Gold.
-- Écrire les requêtes SQL.
-- Vérifier l'intégrité et les volumes.
-
-**Livrable attendu :** base de données analytique fonctionnelle.
-
-### Jour 4 — Power BI et GitHub
-
-- Créer le tableau de bord Power BI.
-- Développer les graphiques et filtres.
-- Valider les résultats des KPI.
-- Documenter les Jobs Talend.
-- Ajouter les captures d'écran.
-- Finaliser les dépôts GitHub.
-
-**Livrable attendu :** projet documenté et démontrable pour un portfolio Data Engineer.
-
----
-
-## 15. Difficultés techniques rencontrées
-
-### Configuration initiale de Talend Studio 8
-
-**Problème :** Talend Studio ne démarrait pas en raison de l'absence d'un environnement Java reconnu.
-
-**Solution appliquée :** installation et configuration d'un JDK compatible, permettant le démarrage de Talend Studio 8.
-
-### Authentification à Talend Cloud
-
-**Problème :** la connexion initiale depuis Studio affichait une erreur d'authentification.
-
-**Solution appliquée :** utilisation de la récupération de licence avec un jeton d'accès personnel et configuration du service Talend Cloud adapté à la région française.
-
-### Accès au projet distant
-
-**Problème :** Talend Studio affichait le message « Impossible de récupérer un projet depuis le Cloud », malgré la création du projet dans Management Console.
-
-**Solution appliquée :** ajout explicite du compte utilisateur dans les collaborateurs du projet.
-
-**Résultat observé :** le projet `World_Bank_Economic_Data_Pipeline` est désormais visible dans Talend Studio et la branche `main` peut être sélectionnée.
-
-### Prochaines difficultés à documenter
-
-- Extraction et parsing des réponses JSON
-- Gestion des modules Talend
-- Connexion à SQL Server
-- Gestion des valeurs manquantes
-- Chargement des données
-- Validation des résultats analytiques
-
-Les solutions correspondantes seront renseignées uniquement après leur mise en œuvre.
-
----
-
-## 16. Résultats du projet
-
-### Résultats déjà obtenus
-
-- Installation fonctionnelle de Talend Studio 8 sur Windows.
-- Activation de la licence d'essai.
-- Connexion à Talend Cloud France.
-- Création du projet Studio distant.
-- Association du dépôt technique GitHub.
-- Attribution des accès au projet.
-- Projet visible dans Talend Studio avec la branche `main`.
-
-### Résultats attendus
-
-- Pipeline d'extraction World Bank fonctionnel.
-- Données économiques nettoyées et standardisées.
-- Chargement des tables SQL Server.
-- Contrôles qualité documentés.
-- Analyses SQL opérationnelles.
-- Dashboard Power BI interactif.
-- Documentation technique complète.
-
-**Aucun résultat ETL, volume de données chargé ou indicateur analytique n'est encore annoncé comme réalisé.**
-
----
-
-## 17. Améliorations futures
-
-Après la première version, les améliorations envisagées comprennent :
-
-- Paramétrage dynamique des pays et années
-- Extraction incrémentale
-- Planification automatique des Jobs
-- Gestion des reprises après erreur
-- Monitoring des traitements
-- Automatisation des contrôles qualité
-- Optimisation du modèle analytique
-- Ajout d'autres indicateurs économiques
-
-Ces évolutions ne sont pas incluses dans le périmètre initial.
-
----
-
-## 18. Documentation et références
-
-**World Bank Open Data**
-
-https://data.worldbank.org/
-
-**World Bank Indicators API**
-
-https://datahelpdesk.worldbank.org/knowledgebase/articles/889392
-
-**Qlik Talend Documentation**
-
-https://help.qlik.com/
-
-**Microsoft SQL Server Documentation**
-
-https://learn.microsoft.com/sql/
-
-**Microsoft Power BI Documentation**
-
-https://learn.microsoft.com/power-bi/
-
-**Dépôt technique Talend**
-
-https://github.com/datasifaw/world-bank-talend-studio
-
-Les données économiques proviennent de la Banque mondiale. Les définitions des indicateurs, leurs sources et leurs conditions de réutilisation seront respectées.
-
----
-
-## 19. Objectif professionnel
-
-Ce projet est réalisé dans le cadre d'un **portfolio Data Engineering**, avec pour objectif de démontrer une maîtrise pratique des étapes de conception et de développement d'un pipeline de données.
-
-Il couvre notamment :
-
-- L'intégration de données depuis une API REST
-- La construction de traitements ETL dans Talend Studio
-- La transformation et la qualité des données
-- L'intégration avec Microsoft SQL Server
-- L'analyse de données avec SQL
-- La visualisation avec Power BI
-- Le versionnement avec GitHub
-- La résolution de problèmes techniques réels
-
-Le projet sera progressivement enrichi avec les fichiers techniques, captures d'écran et résultats vérifiés.
-
----
-
-**Projet :** World Bank Economic Data Pipeline  
-**Domaine :** Data Engineering / ETL / Data Quality / Business Intelligence  
-**Outils :** Talend Studio 8 · World Bank API · SQL Server · Power BI · GitHub  
-**Statut :** En cours de développement — Environnement configuré, ingestion ETL à commencer.
+**Domaine :** Data Engineering · ETL · SQL · Data Quality · Business Intelligence  
+**Statut :** version fonctionnelle validée, documentation et améliorations techniques en évolution.  
+**Dernière mise à jour :** 14 octobre 2026.
