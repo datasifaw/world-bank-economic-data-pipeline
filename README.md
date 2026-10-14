@@ -223,7 +223,7 @@ Traitements prévus :
 - Consolidation par pays et année
 - Calcul du PIB par habitant
 - Préparation des indicateurs KPI
-- Optimisation des données pour le reporting
+- Optimisation des données pour le reporting 
 
 ---
 
